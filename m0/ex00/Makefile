@@ -1,7 +1,7 @@
 default: up
 
 up:
-	@docker compose -f ./compose.yml up
+	@docker compose -f ./compose.yml up -d
 
 stop:
 	@docker compose -f ./compose.yml stop
