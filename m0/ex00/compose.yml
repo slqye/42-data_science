@@ -3,8 +3,3 @@ services:
     image: postgres:16.9-bullseye
     restart: on-failure
     env_file: ".env"
-  adminer:
-    image: adminer
-    restart: on-failure
-    ports:
-      - "8080:8080"
