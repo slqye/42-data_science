@@ -1,4 +1,5 @@
 import sys
+import os
 import psycopg2
 from psycopg2.extras import execute_values
 import time
@@ -67,7 +68,11 @@ def main():
 		"password": "mysecretpassword",
 		"dbname": "piscineds"
 	}
-	create_table(config, "../../../subject/customer/data_2022_dec.csv")
+	path = "../../../subject/customer/"
+	files = os.listdir(path)
+	for file in files:
+		if file.endswith(".csv"):
+			create_table(config, os.path.join(path, file))
 
 
 if __name__ == "__main__":
