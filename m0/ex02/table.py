@@ -1,8 +1,11 @@
 import sys
 import psycopg2
+from psycopg2.extras import execute_values
+import time
 
 
 def create_table(config: dict, path: str):
+	start_time = time.time()
 	name = path.split("/")[-1].split(".")[0]
 	table_data = []
 	cmd_create_table = (
@@ -13,17 +16,16 @@ def create_table(config: dict, path: str):
 			product_id INTEGER NOT NULL,
 			price NUMERIC(10, 2) NOT NULL,
 			user_id BIGINT NOT NULL,
-			user_session UUID NOT NULL
+			user_session UUID
 		);
 		"""
 	)
 	cmd_insert_data = (
 		f"""
 		INSERT INTO {name} (event_time, event_type, product_id, price, user_id, user_session)
-		VALUES (%s, %s, %s, %s, %s, %s);
+		VALUES %s;
 		"""
 	)
-
 	with open(path, "r") as file:
 		next(file)
 		for line in file:
@@ -36,22 +38,23 @@ def create_table(config: dict, path: str):
 					int(product_id),
 					float(price),
 					int(user_id),
-					user_session
+					user_session if user_session.strip() else None
 				))
 	try:
-		with psycopg2.connect(config) as conn:
+		with psycopg2.connect(**config) as conn:
 			with conn.cursor() as cursor:
-				print(f"Creating table {name}...")
+				print(f"Creating [{name}] table")
 				cursor.execute(cmd_create_table)
-				print(f"Table {name} created successfully.")
-				print(f"Inserting data into {name}...")
-				cursor.executemany(cmd_insert_data, table_data)
-				print(f"Data inserted into {name} successfully.")
+				print(f"table [{name}] created successfully")
+				print(f"Inserting data into [{name}]")
+				execute_values(cursor, cmd_insert_data, table_data)
+				print(f"Data inserted into [{name}] successfully")
 	except Exception as e:
-		print(f"Error creating table {name}: {e}", file=sys.stderr)
+		print(f"Error creating table [{name}]: {e}", file=sys.stderr)
+	print(f"Execution time: {time.time() - start_time:.2f} seconds")
 
 
-def main(argv: list):
+def main():
 	config = {
 		"host": "localhost",
 		"port": "5432",
@@ -59,16 +62,8 @@ def main(argv: list):
 		"password": "mysecretpassword",
 		"dbname": "piscineds"
 	}
-	for path in argv[1:]:
-		if path.endswith(".csv"):
-			print(f"[{path}]")
-			create_table(config, path)
-		else:
-			print(f"[{path}]: not a CSV file.")
+	create_table(config, "../../../subject/customer/data_2022_dec.csv")
 
 
 if __name__ == "__main__":
-	if len(sys.argv) < 2:
-		print("Usage: python3 table.py [path_to_csv_file]", file=sys.stderr)
-		sys.exit(1)
-	main(sys.argv)
+	main()
