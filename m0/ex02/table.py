@@ -43,15 +43,15 @@ def create_table(config: dict, path: str):
 	try:
 		with psycopg2.connect(**config) as conn:
 			with conn.cursor() as cursor:
-				print(f"Creating [{name}] table")
+				print(f"[{name}]: Creating table")
 				cursor.execute(cmd_create_table)
-				print(f"table [{name}] created successfully")
-				print(f"Inserting data into [{name}]")
+				print(f"[{name}]: Table successfully created")
+				print(f"[{name}]: Inserting data into table")
 				execute_values(cursor, cmd_insert_data, table_data)
-				print(f"Data inserted into [{name}] successfully")
+				print(f"[{name}]: Data insertion completed")
 	except Exception as e:
 		print(f"Error creating table [{name}]: {e}", file=sys.stderr)
-	print(f"Execution time: {time.time() - start_time:.2f} seconds")
+	print(f"[{name}]: Done in {time.time() - start_time:.2f}s")
 
 
 def main():
