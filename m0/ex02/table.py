@@ -43,14 +43,14 @@ def create_table(config: dict, path: str):
 	try:
 		with psycopg2.connect(**config) as conn:
 			with conn.cursor() as cursor:
+				print(f"[{name}]: Creating table")
+				cursor.execute(cmd_create_table)
+				print(f"[{name}]: Table successfully created")
 				cursor.execute(f"SELECT 1 FROM {name} LIMIT 1")
 				if (cursor.fetchone() is not None):
 					print(f"[{name}]: Table already exists, skipping")
 					print(f"[{name}]: Done in {time.time() - start_time:.2f}s")
 					return
-				print(f"[{name}]: Creating table")
-				cursor.execute(cmd_create_table)
-				print(f"[{name}]: Table successfully created")
 				print(f"[{name}]: Inserting data into table")
 				execute_values(cursor, cmd_insert_data, table_data)
 				print(f"[{name}]: Data insertion completed")
