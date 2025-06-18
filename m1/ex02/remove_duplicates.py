@@ -7,23 +7,25 @@ def join_tables(config: dict):
 	start_time = time.time()
 	name = "customers"
 	cmd_remove_duplicates = (
-		"""
-		DELETE FROM SleepLogs log1
-		using SleepLogs log2
-		where log2.Id = log1.Id
-			and log2.SleepDay = log1.SleepDay
-			and log2.TotalMinutesAsleep = log1.TotalMinutesAsleep
-			and log2.TotalTimeInBed = log1.TotalTimeInBed
-			and log2.ctid < log1.ctid;
+		f"""
+		DELETE FROM {name} a
+		USING {name} b
+		WHERE a.ctid < b.ctid
+			AND a.event_type = b.event_type
+			AND a.product_id = b.product_id
+			AND a.price = b.price
+			AND a.user_id = b.user_id
+			AND a.user_session = b.user_session
+			AND ABS(EXTRACT(EPOCH FROM a.event_time - b.event_time)) <= 1;
 		"""
 	)
 
 	try:
 		with psycopg2.connect(**config) as conn:
 			with conn.cursor() as cursor:
-				print(f"[{name}]: Joining data into table")
+				print(f"[{name}]: Removing duplicates from table")
 				cursor.execute(cmd_remove_duplicates)
-				print(f"[{name}]: Data insertion completed")
+				print(f"[{name}]: Removed duplicates successfully")
 	except Exception as e:
 		print(f"Error creating table [{name}]: {e}", file=sys.stderr)
 	print(f"[{name}]: Done in {time.time() - start_time:.2f}s")
