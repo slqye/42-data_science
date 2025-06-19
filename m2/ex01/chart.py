@@ -29,6 +29,12 @@ class PostgreSqlConnection:
 			self.conn.close()
 
 
+def math_mean(data: list):
+	if not data:
+		return 0
+	return sum(data) / len(data)
+
+
 def first_chart(data: list):
 	all_dates = [x[0].date() for x in data]
 	dates = sorted(list(dict.fromkeys(all_dates)))
@@ -42,7 +48,44 @@ def first_chart(data: list):
 	plt.plot(dates, customers)
 	plt.xticks(ticks, [x.strftime("%b") for x in ticks])
 	plt.ylabel("Number of customers")
-	plt.savefig("/mnt/c/Users/Slaye/Desktop/chart.png")
+	plt.savefig("/mnt/c/Users/Slaye/Desktop/chart1.png")
+	plt.close()
+
+
+def second_chart(data: list):
+	all_dates = [x[0].date() for x in data]
+	dates = sorted(list(dict.fromkeys(all_dates)))
+	ticks = []
+	for i in range(len(dates)):
+		if i == 0:
+			ticks.append(dates[i])
+		elif dates[i - 1] not in ticks and dates[i].month != dates[i - 1].month:
+			ticks.append(dates[i])
+	sales = [sum(y[3] for y in data if y[0].date().strftime("%b") == x.strftime("%b")) for x in ticks]
+	sales = [float(round(x / 1000000, 2)) for x in sales]
+	plt.bar([x.strftime("%b") for x in ticks], sales)
+	plt.xlabel("month")
+	plt.ylabel("total sales in million of Altairian Dollars")
+	plt.savefig("/mnt/c/Users/Slaye/Desktop/chart2.png")
+	plt.close()
+
+
+def third_chart(data: list):
+	all_dates = [x[0].date() for x in data]
+	dates = sorted(list(dict.fromkeys(all_dates)))
+	spendings = [math_mean([y[3] for y in data if y[0].date() == x]) for x in dates]
+	ticks = []
+	for i in range(len(dates)):
+		if i == 0:
+			ticks.append(dates[i])
+		elif dates[i - 1] not in ticks and dates[i].month != dates[i - 1].month:
+			ticks.append(dates[i])
+	plt.plot(dates, spendings, color="blue", alpha=0.3)
+	plt.xticks(ticks, [x.strftime("%b") for x in ticks])
+	plt.ylabel("average spend/customer in Altairian Dollars")
+	plt.fill_between(dates, spendings, color='blue', alpha=0.3)
+	plt.savefig("/mnt/c/Users/Slaye/Desktop/chart3.png")
+	plt.close()
 
 
 def main():
@@ -59,6 +102,8 @@ def main():
 		print("No data found.")
 		return
 	first_chart(data)
+	second_chart(data)
+	third_chart(data)
 
 
 if __name__ == "__main__":
