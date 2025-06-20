@@ -40,6 +40,18 @@ def print_math(data: list):
 	print("max\t", np.max([d[3] for d in data]))
 
 
+def first_chart(data: list):
+	fig, ax = plt.subplots()
+	ax.boxplot(
+		x=[float(x[3]) for x in data],
+		vert=False,
+		flierprops=dict(marker='D')
+	)
+	ax.xaxis.grid(True)
+	ax.set_xlabel('price')
+	plt.show()
+
+
 def main():
 	with PostgreSqlConnection() as conn:
 		cursor = conn.cursor()
@@ -54,6 +66,7 @@ def main():
 		print("No data found.")
 		return
 	print_math(data)
+	first_chart(data)
 
 
 if __name__ == "__main__":
