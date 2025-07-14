@@ -41,14 +41,33 @@ def print_math(data: list):
 
 
 def first_chart(data: list):
-	fig, ax = plt.subplots()
-	ax.boxplot(
-		x=[float(x[3]) for x in data],
-		vert=False,
-		flierprops=dict(marker='D')
+	plt.boxplot(
+		[float(x[3]) for x in data],
+		orientation="horizontal",
+		patch_artist=True,
+		flierprops=dict(
+			marker="d",
+			color="gray",
+			markerfacecolor="gray",
+			markeredgecolor="gray"
+		),
+		medianprops=dict(
+			color="green"
+		),
+		boxprops=dict(
+			color="gray",
+			facecolor="gray"
+		),
+		whiskerprops=dict(
+			color="gray"
+		),
+		capprops=dict(
+			color="gray"
+		),
 	)
-	ax.xaxis.grid(True)
-	ax.set_xlabel('price')
+	plt.grid(axis="x")
+	plt.xlabel("price")
+	plt.yticks([])
 	plt.show()
 
 
@@ -65,7 +84,7 @@ def main():
 	if not data:
 		print("No data found.")
 		return
-	print_math(data)
+	# print_math(data)
 	first_chart(data)
 
 
