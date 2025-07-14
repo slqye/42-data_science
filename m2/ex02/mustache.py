@@ -64,9 +64,55 @@ def first_chart(data: list):
 		capprops=dict(
 			color="gray"
 		),
+		widths=2
 	)
 	plt.grid(axis="x")
 	plt.xlabel("price")
+	plt.yticks([])
+	plt.show()
+
+
+def second_chart(data: list):
+	plt.boxplot(
+		[float(x[3]) for x in data],
+		orientation="horizontal",
+		patch_artist=True,
+		showfliers=False,
+		medianprops=dict(
+			color="black"
+		),
+		boxprops=dict(
+			facecolor="lightgreen"
+		),
+		widths=2
+	)
+	plt.grid(axis="x")
+	plt.xlabel("price")
+	plt.yticks([])
+	plt.show()
+
+
+def third_chart(data: list):
+	plt.boxplot(
+		[round(float(x[1])) for x in data],
+		orientation="horizontal",
+		patch_artist=True,
+		flierprops=dict(
+			marker="d",
+			color="gray",
+			markerfacecolor="gray",
+			markeredgecolor="gray"
+		),
+		medianprops=dict(
+			color="black"
+		),
+		boxprops=dict(
+			facecolor="lightblue"
+		),
+		widths=2,
+		whis=0.2
+	)
+	plt.grid(axis="x")
 	plt.yticks([])
 	plt.show()
 
@@ -85,7 +131,23 @@ def main():
 		print("No data found.")
 		return
 	# print_math(data)
-	first_chart(data)
+	# first_chart(data)
+	# second_chart(data)
+	with PostgreSqlConnection() as conn:
+		cursor = conn.cursor()
+		cursor.execute(
+			"""
+			SELECT user_id, AVG(price) AS mean_cart_price FROM customers
+			WHERE event_type = 'cart'
+			GROUP BY user_id
+			HAVING AVG(price) BETWEEN 26 AND 43;
+			"""
+		)
+		data = cursor.fetchall()
+	if not data:
+		print("No data found.")
+		return
+	third_chart(data)
 
 
 if __name__ == "__main__":

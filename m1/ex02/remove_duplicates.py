@@ -8,15 +8,9 @@ def join_tables(config: dict):
 	name = "customers"
 	cmd_remove_duplicates = (
 		f"""
-		DELETE FROM {name} a
-		USING {name} b
-		WHERE a.ctid < b.ctid
-			AND a.event_type = b.event_type
-			AND a.product_id = b.product_id
-			AND a.price = b.price
-			AND a.user_id = b.user_id
-			AND a.user_session = b.user_session
-			AND ABS(EXTRACT(EPOCH FROM a.event_time - b.event_time)) <= 1;
+		CREATE TEMPORARY TABLE temp_customers AS SELECT DISTINCT * FROM customers;
+		TRUNCATE customers;
+		INSERT INTO {name} SELECT * FROM temp_customers;
 		"""
 	)
 
@@ -25,7 +19,7 @@ def join_tables(config: dict):
 			with conn.cursor() as cursor:
 				print(f"[{name}]: Removing duplicates from table")
 				cursor.execute(cmd_remove_duplicates)
-				print(f"[{name}]: Removed duplicates successfully")
+				print(f"[{name}]: Removed {cursor.rowcount} duplicates successfully")
 	except Exception as e:
 		print(f"Error creating table [{name}]: {e}", file=sys.stderr)
 	print(f"[{name}]: Done in {time.time() - start_time:.2f}s")
