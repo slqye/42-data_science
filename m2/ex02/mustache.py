@@ -2,6 +2,7 @@ import psycopg2
 import matplotlib.pyplot as plt
 import numpy as np
 import datetime as dt
+import pandas as pd
 
 
 class PostgreSqlConnection:
@@ -93,8 +94,18 @@ def second_chart(data: list):
 
 
 def third_chart(data: list):
+	pv = pd.DataFrame(data, columns=["event_time", "user_id", "price"])
+	pv["event_time"] = pd.to_datetime(pv["event_time"])
+	pv.set_index("event_time", inplace=True)
+	pv["date"] = pv.index.date
+	pv["price"] = pd.to_numeric(pv["price"], errors="coerce")
+	pv["price"] = pv["price"].round(2)
+	daily_spend = pv.groupby(["date", "user_id"])["price"].sum().reset_index()
+	daily_avg = daily_spend.groupby("date")["price"].mean()
+	print(daily_avg)
+	print(daily_avg.describe())
 	plt.boxplot(
-		[round(float(x[1])) for x in data],
+		daily_avg,
 		orientation="horizontal",
 		patch_artist=True,
 		flierprops=dict(
@@ -137,10 +148,8 @@ def main():
 		cursor = conn.cursor()
 		cursor.execute(
 			"""
-			SELECT user_id, AVG(price) AS mean_cart_price FROM customers
+			SELECT event_time, user_id, price FROM customers
 			WHERE event_type = 'cart'
-			GROUP BY user_id
-			HAVING AVG(price) BETWEEN 26 AND 43;
 			"""
 		)
 		data = cursor.fetchall()
