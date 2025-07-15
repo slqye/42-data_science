@@ -1,7 +1,6 @@
 import psycopg2
 import matplotlib.pyplot as plt
 import numpy as np
-import datetime as dt
 import pandas as pd
 
 
@@ -98,8 +97,6 @@ def third_chart(data: list):
 	pv["event_time"] = pd.to_datetime(pv["event_time"])
 	pv.set_index("event_time", inplace=True)
 	pv["date"] = pv.index.date
-	pv["price"] = pd.to_numeric(pv["price"], errors="coerce")
-	pv["price"] = pv["price"].round(2)
 	daily_spend = pv.groupby(["date", "user_id"])["price"].sum().reset_index()
 	daily_avg = daily_spend.groupby("date")["price"].mean()
 	print(daily_avg)
@@ -129,18 +126,18 @@ def third_chart(data: list):
 
 
 def main():
-	with PostgreSqlConnection() as conn:
-		cursor = conn.cursor()
-		cursor.execute(
-			"""
-			SELECT * FROM customers
-			WHERE event_type = 'purchase'
-			"""
-		)
-		data = cursor.fetchall()
-	if not data:
-		print("No data found.")
-		return
+	# with PostgreSqlConnection() as conn:
+	# 	cursor = conn.cursor()
+	# 	cursor.execute(
+	# 		"""
+	# 		SELECT * FROM customers
+	# 		WHERE event_type = 'purchase'
+	# 		"""
+	# 	)
+	# 	data = cursor.fetchall()
+	# if not data:
+	# 	print("No data found.")
+	# 	return
 	# print_math(data)
 	# first_chart(data)
 	# second_chart(data)
