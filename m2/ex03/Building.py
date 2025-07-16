@@ -28,15 +28,10 @@ class PostgreSqlConnection:
 
 
 def first_chart(data):
-	users = {}
-	for i in data:
-		if i[0] not in users:
-			users[i[0]] = 1
-		else:
-			users[i[0]] += 1
-	plt.hist(users.values(), bins=5, zorder=2.0)
+	plt.hist([row[1] for row in data if row[1] <= 40], bins=5, zorder=2.0)
 	plt.xlabel('frequency')
 	plt.ylabel('customers')
+	plt.xticks(range(0, 39, 10))
 	plt.grid()
 	plt.show()
 
@@ -54,6 +49,25 @@ def second_chart(data):
 
 
 def main():
+	with PostgreSqlConnection() as conn:
+		cursor = conn.cursor()
+		cursor.execute(
+			"""
+			SELECT order_count, COUNT(*) AS num_users
+			FROM (
+				SELECT user_id, COUNT(*) AS order_count
+				FROM orders
+				GROUP BY user_id
+			) AS user_orders
+			GROUP BY order_count
+			ORDER BY order_count;
+			"""
+		)
+		data = cursor.fetchall()
+	if not data:
+		print("No data found.")
+		return
+	first_chart(data)
 	with PostgreSqlConnection() as conn:
 		cursor = conn.cursor()
 		cursor.execute(
@@ -76,7 +90,6 @@ def main():
 	if not data:
 		print("No data found.")
 		return
-	# first_chart(data)
 	second_chart(data)
 
 
