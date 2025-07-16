@@ -1,7 +1,5 @@
 import psycopg2
 import matplotlib.pyplot as plt
-import numpy as np
-import datetime as dt
 
 
 class PostgreSqlConnection:
@@ -45,19 +43,7 @@ def first_chart(data):
 
 def second_chart(data):
 	labels = ['0', '50', '100', '150', '200']
-	users = {}
-	for i in data:
-		if i[0] not in users:
-			users[i[0]] = i[1]
-		else:
-			users[i[0]] += i[1]
-	y = [
-		len([k for k in users.values() if k < 50]),
-		len([k for k in users.values() if 50 <= k < 100]),
-		len([k for k in users.values() if 100 <= k < 150]),
-		len([k for k in users.values() if 150 <= k < 200]),
-		len([k for k in users.values() if k >= 200])
-	]
+	y = [float(i) for i in data[0]]
 	x = list(range(len(y)))
 	plt.bar(x, y, zorder=2.0)
 	plt.xlabel('monetary value in altarian dollars')
@@ -72,16 +58,26 @@ def main():
 		cursor = conn.cursor()
 		cursor.execute(
 			"""
-			SELECT user_id, price FROM customers
-			WHERE event_type = 'purchase'
+			SELECT
+				SUM(CASE WHEN total >= 0 AND total < 50 THEN 1 ELSE 0 END),
+				SUM(CASE WHEN total >= 50 AND total < 100 THEN 1 ELSE 0 END),
+				SUM(CASE WHEN total >= 100 AND total < 150 THEN 1 ELSE 0 END),
+				SUM(CASE WHEN total >= 150 AND total < 200 THEN 1 ELSE 0 END),
+				SUM(CASE WHEN total >= 200 THEN 1 ELSE 0 END)
+			FROM (
+				SELECT user_id, SUM(price) AS total
+				FROM customers
+				WHERE event_type = 'purchase'
+				GROUP BY user_id
+			) AS user_totals;
 			"""
 		)
 		data = cursor.fetchall()
 	if not data:
 		print("No data found.")
 		return
-	first_chart(data)
-	# second_chart(data)
+	# first_chart(data)
+	second_chart(data)
 
 
 if __name__ == "__main__":
