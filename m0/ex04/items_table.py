@@ -4,9 +4,9 @@ import sqlalchemy as sqla
 
 
 def main():
+	path: str = str(input("absolute csv path: "))
 	start_time = time.time()
 	try:
-		path: str = str(input("absolute csv path: "))
 		df = pd.read_csv(path)
 		database = "postgresql://uwywijas:mysecretpassword@localhost:5432/piscineds"
 		engine = sqla.create_engine(database)
