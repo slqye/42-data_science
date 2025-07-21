@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16.9-bullseye
+    container_name: postgres_db
     restart: on-failure
     env_file: ".env"
     ports:
