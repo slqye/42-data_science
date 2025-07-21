@@ -16,12 +16,27 @@ def fusion(config: dict):
 	)
 	cmd_join_tables = (
 		f"""
-		UPDATE {name}
-		SET
-			category_id = items.category_id,
-			category_code = items.category_code,
-			brand = items.brand
-		FROM items WHERE items.product_id = {name}.product_id
+		UPDATE {name} d
+SET
+	category_id = i.category_id,
+	category_code = i.category_code,
+	brand = i.brand
+FROM (
+	SELECT DISTINCT ON (product_id)
+		product_id,
+		category_id,
+		category_code,
+		brand
+	FROM (
+		SELECT *,
+			(CASE WHEN category_id IS NULL THEN 1 ELSE 0 END +
+			 CASE WHEN category_code IS NULL THEN 1 ELSE 0 END +
+			 CASE WHEN brand IS NULL THEN 1 ELSE 0 END) AS null_count
+		FROM items
+	) sub
+	ORDER BY product_id, null_count
+) i
+WHERE d.product_id = i.product_id;
 		"""
 	)
 
