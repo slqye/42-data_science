@@ -6,13 +6,17 @@ import sqlalchemy.orm as sqlaorm
 def main():
 	start_time = time.time()
 	try:
+		print("creating customers table")
 		database = "postgresql://uwywijas:mysecretpassword@localhost:5432/piscineds"
 		engine = sqla.create_engine(database)
 		session = sqlaorm.sessionmaker(bind=engine)()
 		tables = sqla.inspect(engine).get_table_names()
 		tables = [table for table in tables if table.startswith("data_202")]
-		query = "CREATE TABLE IF NOT EXISTS customers AS " + " UNION ALL ".join(
-			[f"SELECT * FROM {table}" for table in tables]) + ";"
+		query = sqla.text(
+			"CREATE TABLE IF NOT EXISTS customers AS " + " UNION ALL ".join(
+				[f"SELECT * FROM {table}" for table in tables]
+			) + ";"
+		)
 		session.execute(query)
 		session.commit()
 	except Exception as e:
