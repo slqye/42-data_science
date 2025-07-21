@@ -24,9 +24,9 @@ def add_table(engine, path: str):
 
 
 def main():
+	path = str(input("absolute customer folder path: "))
 	start_time = time.time()
 	try:
-		path = str(input("absolute customer folder path: "))
 		database = "postgresql://uwywijas:mysecretpassword@localhost:5432/piscineds"
 		engine = sqla.create_engine(database)
 		files = os.listdir(path)
