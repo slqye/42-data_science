@@ -1,55 +1,43 @@
-import psycopg2
+import sqlalchemy as sqla
+import sqlalchemy.orm as sqlaorm
+import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
+import seaborn as sns
 
 
-class PostgreSqlConnection:
-	DB_HOST = "localhost"
-	DB_PORT = "5432"
-	DB_NAME = "piscineds"
-	DB_USER = "uwywijas"
-	DB_PASSWORD = "mysecretpassword"
-
-	def __init__(self):
-		self.conn = None
-
-	def __enter__(self):
-		self.conn = psycopg2.connect(
-			host=self.DB_HOST,
-			port=self.DB_PORT,
-			dbname=self.DB_NAME,
-			user=self.DB_USER,
-			password=self.DB_PASSWORD
-		)
-		return self.conn
-
-	def __exit__(self, exc_type, exc_value, traceback):
-		if self.conn:
-			self.conn.close()
+def read_sql_file(path: str) -> str:
+	data: str = ""
+	with open(path, "r") as file:
+		data = file.read().replace("\n", " ")
+	return data
 
 
 def main():
-	with PostgreSqlConnection() as conn:
-		cursor = conn.cursor()
-		cursor.execute("SELECT event_type FROM customers")
-		data = cursor.fetchall()
-	if not data:
-		print("No data found.")
+	sns.set_theme()
+	try:
+		database = "postgresql://uwywijas:mysecretpassword@localhost:5432/piscineds"
+		engine = sqla.create_engine(database)
+		session = sqlaorm.sessionmaker(bind=engine)()
+		query = sqla.text(read_sql_file("pie.sql"))
+		result = session.execute(query)
+		session.commit()
+		data = result.fetchall()
+		length = len(data)
+		dataframe = {
+			"view": data.count(("view",)) * 100 / length,
+			"purchase": data.count(("purchase",)) * 100 / length,
+			"remove_from_cart": data.count(("remove_from_cart",)) * 100 / length,
+			"cart": data.count(("cart",)) * 100 / length,
+		}
+		df = pd.DataFrame(dataframe.items())
+		print(df)
+		# sns.relplot(df, kind="pie")
+	except Exception as e:
+		print(f"error: {e}")
 		return
-	length = len(data)
-	values = [
-		data.count(("view",)) * 100 / length,
-		data.count(("cart",)) * 100 / length,
-		data.count(("remove_from_cart",)) * 100 / length,
-		data.count(("purchase",)) * 100 / length
-	]
-	fig, ax = plt.subplots()
-	ax.pie(
-		values,
-		labels=["view", "cart", "remove_from_cart", "purchase"],
-		autopct="%1.1f%%"
-	)
-	fig.savefig("/mnt/c/Users/Slaye/Desktop/pie.png")
+	finally:
+		session.close()
+		engine.dispose()
 
 
 if __name__ == "__main__":
