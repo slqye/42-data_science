@@ -1,50 +1,33 @@
-import sys
-import psycopg2
 import time
+import sqlalchemy as sqla
+import sqlalchemy.orm as sqlaorm
 
 
-def join_tables(config: dict):
-	start_time = time.time()
-	name = "customers"
-	cmd_remove_duplicates = (
-		f"""
-		WITH duplicates AS (
-			SELECT a.ctid
-			FROM customers a
-			JOIN customers b
-				ON a.ctid > b.ctid
-				AND a.event_type = b.event_type
-				AND a.product_id = b.product_id
-				AND a.price = b.price
-				AND a.user_id = b.user_id
-				AND a.user_session = b.user_session
-				AND ABS(EXTRACT(EPOCH FROM a.event_time - b.event_time)) <= 1
-		)
-		DELETE FROM {name}
-		WHERE ctid IN (SELECT ctid FROM duplicates);
-		"""
-	)
-
-	try:
-		with psycopg2.connect(**config) as conn:
-			with conn.cursor() as cursor:
-				print(f"[{name}]: Removing duplicates from table")
-				cursor.execute(cmd_remove_duplicates)
-				print(f"[{name}]: Removed {cursor.rowcount} duplicates successfully")
-	except Exception as e:
-		print(f"Error creating table [{name}]: {e}", file=sys.stderr)
-	print(f"[{name}]: Done in {time.time() - start_time:.2f}s")
+def read_sql_file(path: str) -> str:
+	data: str = ""
+	with open(path, "r") as file:
+		data = file.read().replace("\n", " ")
+	return data
 
 
 def main():
-	config = {
-		"host": "localhost",
-		"port": "5432",
-		"user": "uwywijas",
-		"password": "mysecretpassword",
-		"dbname": "piscineds"
-	}
-	join_tables(config)
+	start_time = time.time()
+	try:
+		print("removing duplicates from customers table")
+		database = "postgresql://uwywijas:mysecretpassword@localhost:5432/piscineds"
+		engine = sqla.create_engine(database)
+		session = sqlaorm.sessionmaker(bind=engine)()
+		query = sqla.text(read_sql_file("remove_duplicates.sql"))
+		rows_affected = session.execute(query)
+		session.commit()
+		print(f"{rows_affected.rowcount} rows affected")
+	except Exception as e:
+		print(f"error: {e}")
+		return
+	finally:
+		session.close()
+		engine.dispose()
+	print(f"done in {time.time() - start_time:.2f} seconds")
 
 
 if __name__ == "__main__":
