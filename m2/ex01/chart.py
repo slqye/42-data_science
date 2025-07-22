@@ -33,6 +33,21 @@ def first_chart(data) -> None:
 	g.set_xticklabels([calendar.month_abbr[x] for x in months])
 	plt.ylabel("Number of customers")
 	plt.show()
+	plt.close()
+
+
+def second_chart(data) -> None:
+	df = pd.DataFrame(data, columns=["month", "amount"])
+	df["month"] = df["month"].dt.strftime("%b")
+	sns.barplot(
+		data=df,
+		x="month",
+		y="amount",
+		legend=False
+	)
+	plt.ylabel("total sales in million of A")
+	plt.show()
+	plt.close()
 
 
 def main():
@@ -42,10 +57,13 @@ def main():
 		session = sqlaorm.sessionmaker(bind=engine)()
 		query = sqla.text(read_sql_file("chart.1.sql"))
 		result = session.execute(query)
-		session.commit()
 		data = result.fetchall()
 		sns.set_theme()
-		first_chart(data)
+		# first_chart(data)
+		query = sqla.text(read_sql_file("chart.2.sql"))
+		result = session.execute(query)
+		data = result.fetchall()
+		second_chart(data)
 	except Exception as e:
 		print(f"error: {e}")
 		return
