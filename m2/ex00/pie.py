@@ -22,16 +22,22 @@ def main():
 		result = session.execute(query)
 		session.commit()
 		data = result.fetchall()
-		length = len(data)
-		dataframe = {
-			"view": data.count(("view",)) * 100 / length,
-			"purchase": data.count(("purchase",)) * 100 / length,
-			"remove_from_cart": data.count(("remove_from_cart",)) * 100 / length,
-			"cart": data.count(("cart",)) * 100 / length,
+		length = sum([int(x[1]) for x in data])
+		numbers = [int(x[1] * 100) for x in data]
+		values = {
+			"view": numbers[3] / length,
+			"cart": numbers[0] / length,
+			"remove_from_cart": numbers[2] / length,
+			"purchase": numbers[1] / length
 		}
-		df = pd.DataFrame(dataframe.items())
-		print(df)
-		# sns.relplot(df, kind="pie")
+		colors = sns.color_palette('pastel')[0:4]
+		plt.pie(
+			values.values(),
+			labels=values.keys(),
+			autopct='%1.1f%%',
+			colors=colors,
+		)
+		plt.show()
 	except Exception as e:
 		print(f"error: {e}")
 		return

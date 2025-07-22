@@ -1,1 +1,2 @@
-SELECT event_type FROM customers;
+SELECT event_type, COUNT(event_type) FROM customers
+GROUP BY event_type;
