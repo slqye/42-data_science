@@ -30,6 +30,13 @@ def first_chart(data) -> None:
 
 
 def second_chart(data) -> None:
+	sns.barplot(
+		x=[0, 50, 100, 150, 200],
+		y=data[0],
+		legend=False
+	)
+	plt.xlabel("monetary value in A")
+	plt.ylabel("customers")
 	plt.show()
 	plt.close()
 
@@ -48,7 +55,7 @@ def main():
 		session = sqlaorm.sessionmaker(bind=engine)()
 		sns.set_theme()
 		first_chart(get_data(session, "Building.1.sql"))
-		# second_chart(get_data(session, "Building.2.sql"))
+		second_chart(get_data(session, "Building.2.sql"))
 	except Exception as e:
 		print(f"error: {e}")
 		return
