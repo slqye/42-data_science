@@ -1,3 +1,3 @@
-SELECT DATE(event_time), COUNT(event_time) FROM customers
+SELECT DATE(event_time), COUNT(DISTINCT user_id) FROM customers
 WHERE event_type = 'purchase'
 GROUP BY DATE(event_time);
