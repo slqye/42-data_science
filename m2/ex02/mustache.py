@@ -36,6 +36,23 @@ def first_chart(data) -> None:
 			"markeredgecolor": "gray"
 		}
 	)
+	plt.yticks([])
+	plt.xlabel("price")
+	plt.ylabel("")
+	plt.show()
+	plt.close()
+
+
+def second_chart(data) -> None:
+	df = pd.DataFrame(data, columns=["price"])
+	sns.boxplot(
+		data=df,
+		legend=False,
+		orient="h",
+		showfliers=False,
+		color="lightgreen"
+	)
+	plt.yticks([])
 	plt.xlabel("price")
 	plt.ylabel("")
 	plt.show()
@@ -75,9 +92,10 @@ def main():
 		engine = sqla.create_engine(database)
 		session = sqlaorm.sessionmaker(bind=engine)()
 		sns.set_theme()
-		# debug_math(get_data(session, "mustache.1.sql"))
+		debug_math(get_data(session, "mustache.1.sql"))
 		first_chart(get_data(session, "mustache.2.sql"))
-		# third_chart(get_data(session, "mustache.4.sql"))
+		second_chart(get_data(session, "mustache.3.sql"))
+		third_chart(get_data(session, "mustache.4.sql"))
 	except Exception as e:
 		print(f"error: {e}")
 		return
