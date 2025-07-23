@@ -1,152 +1,89 @@
-import psycopg2
+import sqlalchemy as sqla
+import sqlalchemy.orm as sqlaorm
+import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
+import seaborn as sns
 
 
-class PostgreSqlConnection:
-	DB_HOST = "localhost"
-	DB_PORT = "5432"
-	DB_NAME = "piscineds"
-	DB_USER = "uwywijas"
-	DB_PASSWORD = "mysecretpassword"
-
-	def __init__(self):
-		self.conn = None
-
-	def __enter__(self):
-		self.conn = psycopg2.connect(
-			host=self.DB_HOST,
-			port=self.DB_PORT,
-			dbname=self.DB_NAME,
-			user=self.DB_USER,
-			password=self.DB_PASSWORD
-		)
-		return self.conn
-
-	def __exit__(self, exc_type, exc_value, traceback):
-		if self.conn:
-			self.conn.close()
+def read_sql_file(path: str) -> str:
+	data: str = ""
+	with open(path, "r") as file:
+		data = file.read().replace("\n", " ")
+	return data
 
 
-def print_math(data: list):
-	print("count\t", len(data))
-	print("mean\t", round(np.mean([d[3] for d in data]), 2))
-	print("std\t", round(np.std([d[3] for d in data]), 2))
-	print("min\t", np.min([d[3] for d in data]))
-	print("25%\t", np.percentile([float(d[3]) for d in data], 25))
-	print("55%\t", np.percentile([float(d[3]) for d in data], 50))
-	print("75%\t", np.percentile([float(d[3]) for d in data], 75))
-	print("max\t", np.max([d[3] for d in data]))
+def debug_math(data) -> None:
+	df = pd.DataFrame(data, columns=["price"])
+	print(f"count\t{df.count()['price']}")
+	print(f"mean\t{df.mean()['price']}")
+	print(f"std\t{df.std()['price']}")
+	print(f"min\t{df.min()['price']}")
+	print(f"25%\t{df.quantile(0.25)['price']}")
+	print(f"50%\t{df.quantile(0.5)['price']}")
+	print(f"75%\t{df.quantile(0.75)['price']}")
+	print(f"max\t{df.max()['price']}")
 
 
-def first_chart(data: list):
-	plt.boxplot(
-		[float(x[3]) for x in data],
-		orientation="horizontal",
-		patch_artist=True,
-		flierprops=dict(
-			marker="d",
-			color="gray",
-			markerfacecolor="gray",
-			markeredgecolor="gray"
-		),
-		medianprops=dict(
-			color="green"
-		),
-		boxprops=dict(
-			color="gray",
-			facecolor="gray"
-		),
-		whiskerprops=dict(
-			color="gray"
-		),
-		capprops=dict(
-			color="gray"
-		),
-		widths=2
+def first_chart(data) -> None:
+	df = pd.DataFrame(data, columns=["price"])
+	sns.boxplot(
+		data=df,
+		legend=False,
+		orient="h",
+		flierprops={
+			"marker": "d",
+			"markerfacecolor": "gray",
+			"markeredgecolor": "gray"
+		}
 	)
-	plt.grid(axis="x")
 	plt.xlabel("price")
-	plt.yticks([])
+	plt.ylabel("")
 	plt.show()
+	plt.close()
 
 
-def second_chart(data: list):
-	plt.boxplot(
-		[float(x[3]) for x in data],
-		orientation="horizontal",
-		patch_artist=True,
-		showfliers=False,
-		medianprops=dict(
-			color="black"
-		),
-		boxprops=dict(
-			facecolor="lightgreen"
-		),
-		widths=2
+def third_chart(data) -> None:
+	df = pd.DataFrame(data, columns=["date", "amount"])
+	df["date"] = pd.to_datetime(df["date"])
+	sns.boxplot(
+		data=df,
+		x="amount",
+		legend=False,
+		orient="h",
+		flierprops={
+			"marker": "d",
+			"markerfacecolor": "gray",
+			"markeredgecolor": "gray"
+		}
 	)
-	plt.grid(axis="x")
-	plt.xlabel("price")
-	plt.yticks([])
+	plt.xlabel("")
+	plt.ylabel("")
 	plt.show()
+	plt.close()
 
 
-def third_chart(data: list):
-	plt.boxplot(
-		[float(data[0]) for data in data],
-		orientation="horizontal",
-		patch_artist=True,
-		flierprops=dict(
-			marker="d",
-			color="gray",
-			markerfacecolor="gray",
-			markeredgecolor="gray"
-		),
-		medianprops=dict(
-			color="black"
-		),
-		boxprops=dict(
-			facecolor="lightblue"
-		),
-		widths=2,
-		whis=0.2
-	)
-	plt.grid(axis="x")
-	plt.yticks([])
-	plt.show()
+def get_data(session, sql_file: str) -> list:
+	query = read_sql_file(sql_file)
+	result = session.execute(sqla.text(query))
+	data = result.fetchall()
+	return data
 
 
 def main():
-	with PostgreSqlConnection() as conn:
-		cursor = conn.cursor()
-		cursor.execute(
-			"""
-			SELECT * FROM customers
-			WHERE event_type = 'purchase'
-			"""
-		)
-		data = cursor.fetchall()
-	if not data:
-		print("No data found.")
+	try:
+		database = "postgresql://uwywijas:mysecretpassword@localhost:5432/piscineds"
+		engine = sqla.create_engine(database)
+		session = sqlaorm.sessionmaker(bind=engine)()
+		sns.set_theme()
+		# debug_math(get_data(session, "mustache.1.sql"))
+		first_chart(get_data(session, "mustache.2.sql"))
+		# third_chart(get_data(session, "mustache.4.sql"))
+	except Exception as e:
+		print(f"error: {e}")
 		return
-	print_math(data)
-	first_chart(data)
-	second_chart(data)
-	with PostgreSqlConnection() as conn:
-		cursor = conn.cursor()
-		cursor.execute(
-			"""
-			SELECT ROUND(SUM(price) / COUNT(DISTINCT event_time)) as value FROM customers
-			WHERE event_type = 'purchase'
-			GROUP BY user_id
-			HAVING SUM(price) / COUNT(DISTINCT event_time) BETWEEN 26 AND 43
-			"""
-		)
-		data = cursor.fetchall()
-	if not data:
-		print("No data found.")
-		return
-	third_chart(data)
+	finally:
+		session.close()
+		engine.dispose()
 
 
 if __name__ == "__main__":
