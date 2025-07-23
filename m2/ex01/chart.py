@@ -62,6 +62,7 @@ def third_chart(data) -> None:
 	labels = [d.strftime("%b") for d in ticks]
 	g.set_xticks(ticks)
 	g.set_xticklabels(labels)
+	plt.xlabel("")
 	plt.ylabel("Number of customers")
 	plt.show()
 	plt.close()
