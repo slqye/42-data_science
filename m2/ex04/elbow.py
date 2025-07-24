@@ -12,32 +12,34 @@ def read_sql_file(path: str) -> str:
 	return data
 
 
+def users_chart(data) -> None:
+	df = pd.DataFrame(data, columns=["purchases", "total_spent"])
+	sns.relplot(
+		data=df,
+		x="purchases",
+		y="total_spent",
+		legend=False,
+	)
+	plt.xlabel("number of purchases")
+	plt.ylabel("total spent")
+	plt.show()
+	plt.close()
+
+
+def get_data(session, sql_file: str) -> list:
+	query = read_sql_file(sql_file)
+	result = session.execute(sqla.text(query))
+	data = result.fetchall()
+	return data
+
+
 def main():
-	sns.set_theme()
 	try:
 		database = "postgresql://uwywijas:mysecretpassword@localhost:5432/piscineds"
 		engine = sqla.create_engine(database)
 		session = sqlaorm.sessionmaker(bind=engine)()
-		query = sqla.text(read_sql_file("pie.sql"))
-		result = session.execute(query)
-		session.commit()
-		data = result.fetchall()
-		length = sum([int(x[1]) for x in data])
-		numbers = [int(x[1] * 100) for x in data]
-		values = {
-			"view": numbers[3] / length,
-			"cart": numbers[0] / length,
-			"remove_from_cart": numbers[2] / length,
-			"purchase": numbers[1] / length
-		}
-		colors = sns.color_palette('pastel')[0:4]
-		plt.pie(
-			values.values(),
-			labels=values.keys(),
-			autopct='%1.1f%%',
-			colors=colors,
-		)
-		plt.show()
+		sns.set_theme()
+		users_chart(get_data(session, "elbow.1.sql"))
 	except Exception as e:
 		print(f"error: {e}")
 		return
