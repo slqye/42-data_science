@@ -42,12 +42,14 @@ def k_means(data: list, k: int, k_center) -> list:
 				mean_x = sum([data[index][0] for index in result[kluster_index]]) / len(result[kluster_index])
 				mean_y = sum([data[index][1] for index in result[kluster_index]]) / len(result[kluster_index])
 				k_points[kluster_index] = (mean_x, mean_y)
-	return result
+	return result, k_points
 
 
 def users_chart(data) -> None:
 	df = pd.DataFrame(data, columns=["purchases", "total_spent"])
-	means = k_means(df.values.tolist(), 3, 10)
+	k_result = k_means(df.values.tolist(), 3, 10)
+	means = k_result[0]
+	k_points = k_result[1]
 	labels = [None] * len(data)
 	for cluster_id, indices in means.items():
 		for idx in indices:
