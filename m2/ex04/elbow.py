@@ -45,13 +45,26 @@ def k_means(data: list, k: int, k_center) -> list:
 	return result, k_points
 
 
+def elbow_method(data: list, k_max: int) -> list:
+	distances = []
+	for k in range(1, k_max + 1):
+		k_result = k_means(data, k, 10)
+		means_points = k_result[0]
+		k_points = k_result[1]
+		total_distance = 0
+		for cluster_id, indices in means_points.items():
+			for idx in indices:
+				total_distance += ((k_points[cluster_id][0] - data[idx][0]) ** 2 + (data[idx][1] - k_points[cluster_id][1]) ** 2)
+		distances.append(total_distance)
+	return distances
+
+
 def users_chart(data) -> None:
 	df = pd.DataFrame(data, columns=["purchases", "total_spent"])
 	k_result = k_means(df.values.tolist(), 3, 10)
-	means = k_result[0]
-	k_points = k_result[1]
+	means_points = k_result[0]
 	labels = [None] * len(data)
-	for cluster_id, indices in means.items():
+	for cluster_id, indices in means_points.items():
 		for idx in indices:
 			labels[idx] = cluster_id
 	df["cluster"] = labels
@@ -64,6 +77,21 @@ def users_chart(data) -> None:
 	)
 	plt.xlabel("number of purchases")
 	plt.ylabel("total spent")
+	plt.show()
+	plt.close()
+
+
+def elbow_chart(data) -> None:
+	df = pd.DataFrame(data, columns=["purchases", "total_spent"])
+	df["purchases"] = (df["purchases"] - df["purchases"].min()) / (df["purchases"].max() - df["purchases"].min())
+	df["total_spent"] = (df["total_spent"] - df["total_spent"].min()) / (df["total_spent"].max() - df["total_spent"].min())
+	elbow_data = elbow_method(df.values.tolist(), 10)
+	elbow_df = pd.DataFrame({"k": range(1, 11), "distance": elbow_data})
+	sns.lineplot(data=elbow_df, x="k", y="distance")
+	plt.title("The Elbow Method")
+	plt.xlabel("Number of clusters")
+	plt.ylabel("")
+	plt.title("Elbow Method")
 	plt.show()
 	plt.close()
 
@@ -81,7 +109,7 @@ def main():
 		engine = sqla.create_engine(database)
 		session = sqlaorm.sessionmaker(bind=engine)()
 		sns.set_theme()
-		users_chart(get_data(session, "elbow.1.sql"))
+		elbow_chart(get_data(session, "elbow.1.sql"))
 	except Exception as e:
 		print(f"error: {e}")
 		return
