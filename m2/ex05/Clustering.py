@@ -47,26 +47,19 @@ def k_means(data: list, k: int, k_center) -> list:
 
 
 def customers_type_count_chart(data) -> None:
-	df = pd.DataFrame(data, columns=["purchases", "total_spent"])
-	k_result = k_means(df.values.tolist(), 3, 42)
-	type_count = [len(x) for x in k_result[0].values()]
-	k_center = k_result[1]
-	k_center_dist = [x[0] ** 2 + x[1] ** 2 for x in k_center]
-	types = {
-		"Small customers": type_count[k_center_dist.index(min(k_center_dist))],
-		"Medium customers": type_count[k_center_dist.index(sorted(k_center_dist)[1])],
-		"Big customers": type_count[k_center_dist.index(max(k_center_dist))]
-	}
-	type_df = pd.DataFrame(types.items(), columns=["type", "customers"])
+	df = pd.DataFrame(data, columns=["type", "amount"])
+	df["type"] = df["type"].astype(str)
+	df["amount"] = df["amount"].astype(int)
 	sns.barplot(
-		data=type_df,
-		x="customers",
+		data=df,
+		x="amount",
 		y="type",
 		hue="type",
 		legend=False
 	)
-	for i, value in enumerate(type_df["customers"]):
-		plt.text(value + 0.5, i, str(value), va="center")
+	for i, value in enumerate(df["amount"]):
+		plt.text(value + 1, i, str(value), va="center")
+	plt.xlabel("number of customers")
 	plt.ylabel("")
 	plt.show()
 	plt.close()
@@ -75,27 +68,20 @@ def customers_type_count_chart(data) -> None:
 def k_center_chart(data) -> None:
 	df = pd.DataFrame(
 		data,
-		columns=["purchases_per_months", "events_times", "total_spent"]
+		columns=["ppm", "frequency"]
 	)
-	df_means = pd.DataFrame({
-		"ppm": df["purchases_per_months"],
-		"recency": df["events_times"]
-	})
-	df_means["recency"] = df_means["recency"].apply(
-		lambda x: np.mean(
-			[(x[y + 1] - x[y]).total_seconds() for y in range(len(x) - 1)]
-		) if len(x) > 1 else (1 / 5)
-	)
-	print(df_means.head(25))
-	k_result = k_means(df_means.values.tolist(), 3, 10)
+	k_result = k_means(df.values.tolist(), 3, 42)
+	k_values = k_result[0] # todo: calculate median among the groups
 	k_center = k_result[1]
-	k_df = pd.DataFrame(k_center, columns=["purchases_per_months", "recency"])
+	k_df = pd.DataFrame(k_center, columns=["ppm", "frequency"])
 	sns.relplot(
-		data=df_means,
-		x="recency",
-		y="ppm",
+		data=k_df,
+		x="ppm",
+		y="frequency",
 		legend=False,
 	)
+	# plt.xlabel("Median recency (month)")
+	# plt.ylabel("Median frequency")
 	plt.show()
 	plt.close()
 
@@ -114,7 +100,7 @@ def main():
 		session = sqlaorm.sessionmaker(bind=engine)()
 		sns.set_theme()
 		# customers_type_count_chart(get_data(session, "Clustering.1.sql"))
-		k_center_chart(get_data(session, "Clustering.1.sql"))
+		k_center_chart(get_data(session, "Clustering.2.sql"))
 	except Exception as e:
 		print(f"error: {e}")
 		return
