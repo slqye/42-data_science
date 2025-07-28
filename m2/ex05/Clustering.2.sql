@@ -1,5 +1,5 @@
 SELECT
-	COUNT(*) / COUNT(DISTINCT EXTRACT(MONTH FROM (event_time))),
+	ARRAY_AGG(DISTINCT event_time ORDER BY event_time),
 	COUNT(*),
 	SUM(price)
 FROM customers

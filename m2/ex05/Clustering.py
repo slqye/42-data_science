@@ -65,36 +65,45 @@ def customers_type_count_chart(data) -> None:
 	plt.close()
 
 
+def calculate_average_recency(data: list) -> float:
+	average_days_in_month = 30.44
+	if not data or len(data) < 2:
+		return 0
+	recency_values = [(data[x + 1] - data[x]).days / average_days_in_month for x in range(len(data) - 1)]
+	return sum(recency_values) / len(recency_values)
+
+
 def k_center_chart(data) -> None:
+	processed_data = [(calculate_average_recency(x[0]), x[1], x[2]) for x in data]
 	df = pd.DataFrame(
-		data=data,
-		columns=["ppm", "frequency", "total_spend"]
+		data=processed_data,
+		columns=["recency", "frequency", "total_spend"]
 	)
-	df_means = df[["ppm", "frequency"]]
+	df_means = df[["recency", "frequency"]]
 	k_result = k_means(df_means.values.tolist(), 3, 42)
 	k_values = k_result[0]
 	values = [
 		[
-			np.median([data[index][0] for index in k_values[0]]),
-			np.median([data[index][1] for index in k_values[0]]),
-			round(np.mean([data[index][2] for index in k_values[0]]))
+			np.median([processed_data[index][0] for index in k_values[0]]),
+			np.median([processed_data[index][1] for index in k_values[0]]),
+			round(np.mean([processed_data[index][2] for index in k_values[0]]))
 		],
 		[
-			np.median([data[index][0] for index in k_values[1]]),
-			np.median([data[index][1] for index in k_values[1]]),
-			round(np.mean([data[index][2] for index in k_values[1]]))
+			np.median([processed_data[index][0] for index in k_values[1]]),
+			np.median([processed_data[index][1] for index in k_values[1]]),
+			round(np.mean([processed_data[index][2] for index in k_values[1]]))
 		],
 		[
-			np.median([data[index][0] for index in k_values[2]]),
-			np.median([data[index][1] for index in k_values[2]]),
-			round(np.mean([data[index][2] for index in k_values[2]]))
+			np.median([processed_data[index][0] for index in k_values[2]]),
+			np.median([processed_data[index][1] for index in k_values[2]]),
+			round(np.mean([processed_data[index][2] for index in k_values[2]]))
 		]
 	]
 	values_chart = [x[:2] for x in values]
-	k_df = pd.DataFrame(values_chart, columns=["ppm", "frequency"])
+	k_df = pd.DataFrame(values_chart, columns=["recency", "frequency"])
 	sns.relplot(
 		data=k_df,
-		x="ppm",
+		x="recency",
 		y="frequency",
 		hue=k_df.index,
 		legend=False,
