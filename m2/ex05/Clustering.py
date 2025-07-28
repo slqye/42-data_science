@@ -67,21 +67,56 @@ def customers_type_count_chart(data) -> None:
 
 def k_center_chart(data) -> None:
 	df = pd.DataFrame(
-		data,
-		columns=["ppm", "frequency"]
+		data=data,
+		columns=["ppm", "frequency", "total_spend"]
 	)
-	k_result = k_means(df.values.tolist(), 3, 42)
-	k_values = k_result[0] # todo: calculate median among the groups
-	k_center = k_result[1]
-	k_df = pd.DataFrame(k_center, columns=["ppm", "frequency"])
+	df_means = df[["ppm", "frequency"]]
+	k_result = k_means(df_means.values.tolist(), 3, 42)
+	k_values = k_result[0]
+	values = [
+		[
+			np.median([data[index][0] for index in k_values[0]]),
+			np.median([data[index][1] for index in k_values[0]]),
+			round(np.mean([data[index][2] for index in k_values[0]]))
+		],
+		[
+			np.median([data[index][0] for index in k_values[1]]),
+			np.median([data[index][1] for index in k_values[1]]),
+			round(np.mean([data[index][2] for index in k_values[1]]))
+		],
+		[
+			np.median([data[index][0] for index in k_values[2]]),
+			np.median([data[index][1] for index in k_values[2]]),
+			round(np.mean([data[index][2] for index in k_values[2]]))
+		]
+	]
+	values_chart = [x[:2] for x in values]
+	k_df = pd.DataFrame(values_chart, columns=["ppm", "frequency"])
 	sns.relplot(
 		data=k_df,
 		x="ppm",
 		y="frequency",
+		hue=k_df.index,
 		legend=False,
+		s=500,
+		palette="pastel"
 	)
-	# plt.xlabel("Median recency (month)")
-	# plt.ylabel("Median frequency")
+	titles = [
+		"Average \"inactive\": ",
+		"Average \"new customer\": ",
+		"Average \"Loyal customers\": "
+	]
+	values_spend = sorted(
+		[(x, values[x][2]) for x in range(len(values))],
+		key=lambda x: x[1]
+	)
+	for i in range(len(values_spend)):
+		real_index = values_spend[i][0]
+		values[real_index].append(titles[i] + f"{values_spend[i][1]}A")
+	for i, (ppm, freq) in enumerate(values_chart):
+		plt.text(ppm, freq + 3, values[i][3], fontsize=12, ha="center", va="bottom")
+	plt.xlabel("Median recency (month)")
+	plt.ylabel("Median frequency")
 	plt.show()
 	plt.close()
 
@@ -99,7 +134,7 @@ def main():
 		engine = sqla.create_engine(database)
 		session = sqlaorm.sessionmaker(bind=engine)()
 		sns.set_theme()
-		# customers_type_count_chart(get_data(session, "Clustering.1.sql"))
+		customers_type_count_chart(get_data(session, "Clustering.1.sql"))
 		k_center_chart(get_data(session, "Clustering.2.sql"))
 	except Exception as e:
 		print(f"error: {e}")

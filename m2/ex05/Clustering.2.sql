@@ -1,6 +1,7 @@
 SELECT
 	COUNT(*) / COUNT(DISTINCT EXTRACT(MONTH FROM (event_time))),
-	COUNT(*)
+	COUNT(*),
+	SUM(price)
 FROM customers
 WHERE event_type = 'purchase'
 GROUP BY user_id; 
