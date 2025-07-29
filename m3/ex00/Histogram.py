@@ -29,6 +29,40 @@ def plot_test_histograms(df) -> None:
 	plt.show()
 
 
+def plot_train_histograms(df) -> None:
+	rows: int = 6
+	columns: int = 5
+	fig, ax = plt.subplots(rows, columns, figsize=(15, 10))
+	ax = ax.ravel()
+	for i, column in enumerate(df.columns):
+		if column == "knight":
+			continue
+		sns.histplot(
+			data=df[df["knight"] == "Jedi"],
+			x=column,
+			ax=ax[i],
+			bins=40,
+			label="Jedi",
+			color="blue",
+			alpha=0.5
+		)
+		sns.histplot(
+			data=df[df["knight"] == "Sith"],
+			x=column,
+			ax=ax[i],
+			bins=40,
+			label="Sith",
+			color="red",
+			alpha=0.5
+		)
+		ax[i].set_title(column)
+		ax[i].set_xlabel("")
+		ax[i].set_ylabel("")
+		ax[i].legend(loc="upper right")
+	plt.tight_layout()
+	plt.show()
+
+
 def check_default_csv_path(test_csv_path, train_csv_path):
 	if (test_csv_path == "") or (train_csv_path == ""):
 		return DEFAULT_TEST_CSV_PATH, DEFAULT_TRAIN_CSV_PATH
@@ -43,8 +77,9 @@ def main():
 			str(input("path \"Train_knight.csv\": "))
 		)
 		test_df = pd.read_csv(test_csv_path)
-		# train_df = pd.read_csv(train_csv_path)
+		train_df = pd.read_csv(train_csv_path)
 		plot_test_histograms(test_df)
+		plot_train_histograms(train_df)
 	except Exception as e:
 		print(f"error: {e}")
 		return
