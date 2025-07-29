@@ -14,14 +14,8 @@ def read_sql_file(path: str) -> str:
 
 def debug_math(data) -> None:
 	df = pd.DataFrame(data, columns=["price"])
-	print(f"count\t{df.count()['price']}")
-	print(f"mean\t{df.mean()['price']}")
-	print(f"std\t{df.std()['price']}")
-	print(f"min\t{df.min()['price']}")
-	print(f"25%\t{df.quantile(0.25)['price']}")
-	print(f"50%\t{df.quantile(0.5)['price']}")
-	print(f"75%\t{df.quantile(0.75)['price']}")
-	print(f"max\t{df.max()['price']}")
+	pd.set_option("display.float_format", lambda x: f"{x:.4f}")
+	print(df["price"].describe().to_string())
 
 
 def first_chart(data) -> None:
