@@ -33,6 +33,22 @@ def get_standardized_data(train_df, test_df):
 	)
 	plt.xlabel("Empowered")
 	plt.ylabel("Stims")
+	plt.legend(title="")
+	plt.show()
+	plt.clf()
+	test_df_standardized["knight"] = train_df["knight"].map({1: "Jedi", 0: "Sith"})
+	chart = test_df_standardized[["Empowered", "Stims"]]
+	sns.scatterplot(
+		data=chart,
+		x="Empowered",
+		y="Stims",
+		label="Knight",
+		color="green",
+		alpha=0.5
+	)
+	plt.xlabel("Empowered")
+	plt.ylabel("Stims")
+	plt.legend(title="")
 	plt.show()
 
 
