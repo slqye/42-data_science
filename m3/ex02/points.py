@@ -11,7 +11,9 @@ def plot_charts(train_df, test_df) -> None:
 	rows: int = 2
 	columns: int = 2
 	fig, ax = plt.subplots(rows, columns)
-	palette = {"Sith": "red", "Jedi": "blue"}
+	palette = {"Jedi": "blue", "Sith": "red"}
+	# Swap colors
+	# train_df["knight"] = train_df["knight"].map({"Sith": "Jedi", "Jedi": "Sith"})
 	chart_00 = train_df[["Empowered", "Stims", "knight"]]
 	sns.scatterplot(
 		data=chart_00,
