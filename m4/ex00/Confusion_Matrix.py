@@ -1,89 +1,71 @@
+import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-DEFAULT_TEST_CSV_PATH = "../Test_knight.csv"
-DEFAULT_TRAIN_CSV_PATH = "../Train_knight.csv"
+POSITIVE_LABEL = "Jedi"
 
 
-def plot_test_histograms(df) -> None:
-	rows: int = 6
-	columns: int = 5
-	fig, ax = plt.subplots(rows, columns, figsize=(15, 10))
-	ax = ax.ravel()
-	for i, column in enumerate(df.columns):
-		sns.histplot(
-			data=df,
-			x=column,
-			ax=ax[i],
-			label="Knight",
-			bins=40,
-			color="green"
-		)
-		ax[i].set_title(column)
-		ax[i].set_xlabel("")
-		ax[i].set_ylabel("")
-		ax[i].legend(loc="upper right")
-	plt.tight_layout()
+def calculate_confusion_matrix(predictions: str, truth: str):
+	tp: int = 0
+	tn: int = 0
+	fp: int = 0
+	fn: int = 0
+
+	with open(predictions, "r") as pred_file, open(truth, "r") as truth_file:
+		for pred_line, truth_line in zip(pred_file, truth_file):
+			pred_value = str(pred_line.strip())
+			truth_value = str(truth_line.strip())
+			if pred_value == truth_value:
+				if pred_value == POSITIVE_LABEL:
+					tp += 1
+				else:
+					tn += 1
+			elif pred_value == POSITIVE_LABEL:
+				fp += 1
+			else:
+				fn += 1
+	jedi_precision = tp / (tp + fp)
+	sith_precision = tn / (tn + fn)
+	jedi_recall = tp / (tp + fn)
+	sith_recall = tn / (tn + fp)
+	jedi_f1 = 2 * (jedi_precision * jedi_recall) / (jedi_precision + jedi_recall)
+	sith_f1 = 2 * (sith_precision * sith_recall) / (sith_precision + sith_recall)
+	jedi_total = tp + fn
+	sith_total = tn + fp
+	accuracy = (tp + tn) / (tp + tn + fp + fn)
+	total = jedi_total + sith_total
+	matrix = [
+		[tp, fn],
+		[fp, tn]
+	]
+	print("\tprecision\trecall\tf1-score\ttotal")
+	print(f"Jedi\t{jedi_precision:.2f}\t\t{jedi_recall:.2f}\t{jedi_f1:.2f}\t\t{jedi_total}")
+	print(f"Sith\t{sith_precision:.2f}\t\t{sith_recall:.2f}\t{sith_f1:.2f}\t\t{sith_total}")
+	print()
+	print(f"accuracy\t\t\t{accuracy}\t\t{total}")
+	print()
+	print(matrix)
+	sns.heatmap(
+		matrix,
+		annot=True,
+		cmap="viridis",
+	)
 	plt.show()
 
 
-def plot_train_histograms(df) -> None:
-	rows: int = 6
-	columns: int = 5
-	fig, ax = plt.subplots(rows, columns, figsize=(15, 10))
-	ax = ax.ravel()
-	for i, column in enumerate(df.columns):
-		if column == "knight":
-			continue
-		sns.histplot(
-			data=df[df["knight"] == "Jedi"],
-			x=column,
-			ax=ax[i],
-			bins=40,
-			label="Jedi",
-			color="blue",
-			alpha=0.5
-		)
-		sns.histplot(
-			data=df[df["knight"] == "Sith"],
-			x=column,
-			ax=ax[i],
-			bins=40,
-			label="Sith",
-			color="red",
-			alpha=0.5
-		)
-		ax[i].set_title(column)
-		ax[i].set_xlabel("")
-		ax[i].set_ylabel("")
-		ax[i].legend(loc="upper right")
-	plt.tight_layout()
-	plt.show()
-
-
-def check_default_csv_path(test_csv_path, train_csv_path):
-	if (test_csv_path == "") or (train_csv_path == ""):
-		return DEFAULT_TEST_CSV_PATH, DEFAULT_TRAIN_CSV_PATH
-	return test_csv_path, train_csv_path
-
-
-def main():
+def main(argv: list) -> None:
+	if len(argv) != 3:
+		print("usage: python Confusion_Matrix.py <predictions.txt> <truth.txt>")
+		return
 	try:
 		sns.set_theme()
-		test_csv_path, train_csv_path = check_default_csv_path(
-			str(input("path \"Test_knight.csv\": ")),
-			str(input("path \"Train_knight.csv\": "))
-		)
-		test_df = pd.read_csv(test_csv_path)
-		train_df = pd.read_csv(train_csv_path)
-		plot_test_histograms(test_df)
-		plot_train_histograms(train_df)
+		calculate_confusion_matrix(argv[1], argv[2])
 	except Exception as e:
 		print(f"error: {e}")
 		return
 
 
 if __name__ == "__main__":
-	main()
+	main(sys.argv)
