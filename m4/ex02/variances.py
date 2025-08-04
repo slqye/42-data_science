@@ -1,25 +1,27 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.decomposition import PCA
 
 
 DEFAULT_TRAIN_CSV_PATH = "../Train_knight.csv"
 
 
 def calc_variances(df: pd.DataFrame) -> None:
-	df["knight"] = df["knight"] == "Sith"
-	variances = []
-	cumulative_variances = []
-	for i in df.columns:
-		variances.append(df[i].var())
-	for i in range(len(variances)):
-		if i == 0:
-			cumulative_variances.append(variances[i])
-		else:
-			cumulative_variances.append(cumulative_variances[i - 1] + variances[i])
-	print("Variances (Percentage):\n", variances)
-	print()
+	df["knight"] = df["knight"].apply(lambda x: 1 if x == "Sith" else 0)
+
+	df_standardized = (df - df.mean()) / df.std()
+	pca = PCA()
+	pca.fit(df_standardized)
+	variances = pca.explained_variance_ratio_ * 100
+	cumulative_variances = np.cumsum(variances)
+	print("Variances (Percentage):\n", variances, "\n")
 	print("Cumulative Variances (Percentage):\n", cumulative_variances)
+	sns.lineplot(
+		data=cumulative_variances,
+	)
+	plt.show()
 
 
 def check_default_csv_path(train_csv_path):
