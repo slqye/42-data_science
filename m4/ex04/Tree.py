@@ -10,19 +10,23 @@ from sklearn.tree import DecisionTreeClassifier
 DEFAULT_TRAIN_CSV_PATH = "../Train_knight.csv"
 
 
-def decision_tree(df: pd.DataFrame) -> None:
-	df["knight"] = df["knight"].apply(lambda x: 1 if x == "Sith" else 0)
-	df_normalized = (df - df.min()) / (df.max() - df.min())
+def decision_tree(df_train: pd.DataFrame, df_test: pd.DataFrame) -> None:
+	df_train["knight"] = df_train["knight"].apply(lambda x: 1 if x == "Sith" else 0)
 	features = ["Reactivity", "Push", "Survival", "Deflection"]
-	x = df[features]
-	y = df["knight"]
+	x = df_train[features]
+	y = df_train["knight"]
 	dtree = DecisionTreeClassifier()
 	dtree.fit(x, y)
+	predictions = dtree.predict(df_test[features])
+	with open("Tree.txt", "w") as file:
+		for pred in predictions:
+			file.write("Sith\n") if pred == 1 else file.write("Jedi\n")
+	return
 	tree.plot_tree(
 		dtree,
 		feature_names=features,
 	)
-	plt.savefig("/mnt/c/Users/Slaye/Desktop/tree.png", dpi=600)
+	plt.show(dpi=600)
 
 
 def check_default_csv_path(train_csv_path):
@@ -39,7 +43,7 @@ def main(argv: list[str]) -> None:
 		sns.set_theme()
 		train_df = pd.read_csv(argv[1])
 		test_df = pd.read_csv(argv[2])
-		decision_tree(train_df)
+		decision_tree(train_df, test_df)
 	except Exception as e:
 		print(f"error: {e}")
 		return
