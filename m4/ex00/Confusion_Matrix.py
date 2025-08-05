@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -46,7 +47,7 @@ def calculate_confusion_matrix(predictions: str, truth: str):
 	print()
 	print(f"accuracy\t\t\t{accuracy}\t\t{total}")
 	print()
-	print(matrix)
+	print(np.array(matrix))
 	sns.heatmap(
 		matrix,
 		annot=True,
