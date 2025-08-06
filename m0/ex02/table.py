@@ -24,8 +24,6 @@ def main():
 	except Exception as e:
 		print(f"error: {e}")
 		return
-	finally:
-		engine.dispose()
 	print(f"done in {time.time() - start_time:.2f} seconds")
 
 

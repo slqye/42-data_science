@@ -16,4 +16,7 @@ fclean:
 	@docker compose -f ./compose.yml down -v --rmi all
 	@docker system prune -af
 
-.PHONY: build
+enter:
+	@docker exec -it postgres_db bash
+
+.PHONY: up stop down build fclean enter
