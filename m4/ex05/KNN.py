@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import f1_score
 
@@ -21,9 +22,11 @@ def format_data(df_train: pd.DataFrame, df_test: pd.DataFrame):
 	return x, y, test_x, test_y
 
 def train_model(x: pd.DataFrame, y: pd.DataFrame):
+	scaler = StandardScaler()
+	x_scaled = scaler.fit_transform(x)
 	model = KNeighborsClassifier(n_neighbors=12)
-	model.fit(x, y)
-	return model
+	model.fit(x_scaled, y)
+	return model, scaler
 
 def show_models(x, y, test_x, test_y) -> None:
 	k_values = np.arange(1, 31)
@@ -32,7 +35,7 @@ def show_models(x, y, test_x, test_y) -> None:
 	scaled_x = scaler.fit_transform(x)
 	scaled_test_x = scaler.fit_transform(test_x)
 	for k in k_values:
-		knn = KNeighborsClassifier(n_neighbors=k)
+		knn = KNeighborsClassifier(n_neighbors=k, weights="distance", metric="euclidean")
 		knn.fit(scaled_x, y)
 		predictions = knn.predict(scaled_test_x)
 		score = f1_score(test_y, predictions, average="weighted")
@@ -55,8 +58,8 @@ def main(argv: list[str]) -> None:
 		train_df = pd.read_csv(argv[1])
 		test_df = pd.read_csv(argv[2])
 		x, y, test_x, test_y = format_data(train_df, test_df)
-		model = train_model(x, y)
-		predictions = model.predict(test_x)
+		model, scaler = train_model(x, y)
+		predictions = model.predict(scaler.fit_transform(test_x))
 		save_predictions(predictions)
 		if test_y is None:
 			raise ValueError("warning: f1_score unknown (not a validation set)")
