@@ -21,19 +21,22 @@ def format_data(df_train: pd.DataFrame, df_test: pd.DataFrame):
 	return x, y, test_x, test_y
 
 def train_model(x: pd.DataFrame, y: pd.DataFrame):
-	model = KNeighborsClassifier(n_neighbors=5)
+	model = KNeighborsClassifier(n_neighbors=12)
 	model.fit(x, y)
 	return model
 
-def show_models(x, y) -> None:
+def show_models(x, y, test_x, test_y) -> None:
 	k_values = np.arange(1, 31)
 	scores = []
 	scaler = StandardScaler()
 	scaled_x = scaler.fit_transform(x)
+	scaled_test_x = scaler.fit_transform(test_x)
 	for k in k_values:
 		knn = KNeighborsClassifier(n_neighbors=k)
-		score = cross_val_score(knn, scaled_x, y, cv=2)
-		scores.append(score[0])
+		knn.fit(scaled_x, y)
+		predictions = knn.predict(scaled_test_x)
+		score = f1_score(test_y, predictions, average="weighted")
+		scores.append(score)
 	sns.lineplot(data=scores)
 	plt.show()
 
@@ -57,7 +60,7 @@ def main(argv: list[str]) -> None:
 		save_predictions(predictions)
 		if test_y is None:
 			raise ValueError("warning: f1_score unknown (not a validation set)")
-		show_models(x, y)
+		show_models(x, y, test_x, test_y)
 	except ValueError as e:
 		print(e)
 	except Exception as e:
