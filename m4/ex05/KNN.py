@@ -35,7 +35,7 @@ def show_models(x, y, test_x, test_y) -> None:
 	scaled_x = scaler.fit_transform(x)
 	scaled_test_x = scaler.fit_transform(test_x)
 	for k in k_values:
-		knn = KNeighborsClassifier(n_neighbors=k, weights="distance", metric="euclidean")
+		knn = KNeighborsClassifier(n_neighbors=k)
 		knn.fit(scaled_x, y)
 		predictions = knn.predict(scaled_test_x)
 		score = f1_score(test_y, predictions, average="weighted")
@@ -59,7 +59,7 @@ def main(argv: list[str]) -> None:
 		test_df = pd.read_csv(argv[2])
 		x, y, test_x, test_y = format_data(train_df, test_df)
 		model, scaler = train_model(x, y)
-		predictions = model.predict(scaler.fit_transform(test_x))
+		predictions = model.predict(scaler.transform(test_x))
 		save_predictions(predictions)
 		if test_y is None:
 			raise ValueError("warning: f1_score unknown (not a validation set)")
