@@ -6,7 +6,6 @@ from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import f1_score
 
-DEFAULT_TRAIN_CSV_PATH = "../Train_knight.csv"
 POSITIVE_LABEL = "Jedi"
 
 def format_data(df_train: pd.DataFrame, df_test: pd.DataFrame):
@@ -35,11 +34,6 @@ def save_predictions(predictions) -> None:
 		for pred in predictions:
 			file.write("Sith\n" if pred == 1 else "Jedi\n")
 
-def check_default_csv_path(train_csv_path):
-	if train_csv_path == "":
-		return DEFAULT_TRAIN_CSV_PATH
-	return train_csv_path
-
 def main(argv: list[str]) -> None:
 	if len(argv) < 3:
 		print("error: usage: python Tree.py <train_csv_path> <test_csv_path>")
@@ -52,7 +46,7 @@ def main(argv: list[str]) -> None:
 		model = train_model(x, y)
 		predictions = model.predict(test_x)
 		save_predictions(predictions)
-		# show_model(model, x)
+		show_model(model, x)
 		if test_y is None:
 			raise ValueError("warning: f1_score unknown (not a validation set)")
 		model_f1_score = f1_score(test_y, predictions)
