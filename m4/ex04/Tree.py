@@ -19,7 +19,7 @@ def format_data(df_train: pd.DataFrame, df_test: pd.DataFrame):
 	return x, y, test_x, test_y
 
 def train_model(x: pd.DataFrame, y: pd.DataFrame):
-	model = DecisionTreeClassifier(random_state=11)
+	model = DecisionTreeClassifier(random_state=43)
 	model.fit(x, y)
 	return model
 
