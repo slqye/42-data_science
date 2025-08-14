@@ -19,6 +19,11 @@ def calc_variances(df: pd.DataFrame) -> None:
 		)
 		for index, col in enumerate(df.columns)
 	]
+	df_all = pd.DataFrame(values, columns=["Feature", "VIF", "Tolerance"])
+	df_all.index = df_all["Feature"]
+	df_all = df_all.drop(columns=["Feature"])
+	print(df_all)
+	print()
 	values = [x for x in values if x[1] < 5]
 	df_results = pd.DataFrame(values, columns=["Feature", "VIF", "Tolerance"])
 	df_results.index = df_results["Feature"]
